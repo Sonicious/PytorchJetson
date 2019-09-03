@@ -83,7 +83,7 @@ def test():
     with torch.no_grad():
         for data, target in test_loader:
             output = net(data)
-            test_loss += F.nll_loss(output, target)
+            test_loss += F.nll_loss(output, target).item()
     test_loss = test_loss / len(test_loader.dataset)
     print('Test Loss: {}'.format(test_loss))
 
@@ -153,7 +153,9 @@ print('parameters: {}/{} are trainable'.format(trainParams, totalParams))
 
 optimizer = optim.SGD(params=net.parameters(), lr=learning_rate, momentum=momentum)
 
-train(1)
+for epoch in range(n_epochs + 1):
+    train(epoch)
+    test()
 
 # fig = plt.figure()
 # plt.plot(train_counter, train_losses, color='blue')
