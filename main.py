@@ -25,6 +25,11 @@ class Net_old(nn.Module):
         x = self.fc2(x)
         return F.log_softmax(x, dim=1)
 
+    def getParameters(self):
+        total_params = sum(p.numel() for p in self.parameters())
+        trainable_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
+        return (trainable_params, total_params)
+
 
 class Net(nn.Module):
 
@@ -43,11 +48,6 @@ class Net(nn.Module):
         # Pooling layers
         self.pool1 = nn.MaxPool2d(kernel_size=2)
         self.pool2 = nn.MaxPool2d(kernel_size=2)
-        # activations
-        self.relu1 = nn.ReLU()
-        self.relu2 = nn.ReLU()
-        self.relu3 = nn.ReLU()
-        self.relu4 = nn.ReLU()
         # flatten whole tensor
         self.flatten1 = nn.Flatten(start_dim=1, end_dim=-1)
 
@@ -55,13 +55,13 @@ class Net(nn.Module):
         # 1*28*28 -> 6*28*28
         x = self.conv1(x)
         # activation
-        x = self.relu1(x)
+        x = F.relu(x)
         # 6*28*28 -> 6*14*14
         x = self.pool1(x)
         # 6*14*14 -> 16*12*12
         x = self.conv2(x)
         # activation
-        x = self.relu2(x)
+        x = F.relu(x)
         # 16*12*12 -> 16*6*6
         x = self.pool2(x)
         # 16*6*6 -> 1*576
@@ -69,14 +69,20 @@ class Net(nn.Module):
         # 1*576 -> 1*120
         x = self.fc1(x)
         # activation
-        x = self.relu3(x)
+        x = F.relu(x)
         # 1*120 -> 1*84
         x = self.fc2(x)
         # activation
-        x = self.relu4(x)
+        x = F.relu(x)
         # 1*84 -> 10
         x = self.fc3(x)
         return x
+
+    def getParameters(self):
+        total_params = sum(p.numel() for p in self.parameters())
+        trainable_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
+        return (trainable_params, total_params)
+
 
 def train(args, model, device, train_loader, optimizer, epoch):
     model.train()
@@ -155,6 +161,9 @@ def main():
         batch_size=args.test_batch_size, shuffle=True, **kwargs)
 
     model = Net().to(device)
+    (trainParams, totalParams) = model.getParameters()
+    print('parameters: {}/{} are trainable'.format(trainParams, totalParams))
+
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 
     for epoch in range(1, args.epochs + 1):
