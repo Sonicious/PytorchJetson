@@ -21,42 +21,26 @@ class Net(nn.Module):
         self.fc1 = nn.Linear(16 * 6 * 6, 120)  # 6*6 from image dimension
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, 10)
-        # Pooling layers
-        self.pool1 = nn.MaxPool2d(kernel_size=2)
-        self.pool2 = nn.MaxPool2d(kernel_size=2)
-        # activations
-        self.relu1 = nn.ReLU()
-        self.relu2 = nn.ReLU()
-        self.relu3 = nn.ReLU()
-        self.relu4 = nn.ReLU()
         # flatten whole tensor
         self.flatten1 = nn.Flatten(start_dim=1, end_dim=-1)
 
     def forward(self, x):
         # 1*28*28 -> 6*28*28
-        x = self.conv1(x)
-        # activation
-        x = self.relu1(x)
+        x = F.relu(self.conv1(x))
         # 6*28*28 -> 6*14*14
-        x = self.pool1(x)
+        x = F.max_pool2d(x, kernel_size=2)
         # 6*14*14 -> 16*12*12
-        x = self.conv2(x)
-        # activation
-        x = self.relu2(x)
+        x = F.relu(self.conv2(x))
         # 16*12*12 -> 16*6*6
-        x = self.pool2(x)
+        x = F.max_pool2d(x, kernel_size=2)
         # 16*6*6 -> 1*576
         x = self.flatten1(x)
         # 1*576 -> 1*120
-        x = self.fc1(x)
-        # activation
-        x = self.relu3(x)
+        x = F.relu(self.fc1(x))
         # 1*120 -> 1*84
-        x = self.fc2(x)
-        # activation
-        x = self.relu4(x)
-        # 1*84 -> 10
-        x = self.fc3(x)
+        x = F.relu(self.fc2(x))
+        # 1*84 -> 10 (softmax)
+        x = F.log_softmax(self.fc3(x), dim=1)
         return x
 
     def getParameters(self):
@@ -64,6 +48,15 @@ class Net(nn.Module):
         trainable_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
         return (trainable_params, total_params)
 
+
+class NeuralWrapper():
+
+    def __init__(self, n)
+        self.neuralnetwork = n
+
+    def printParameters(self):
+        (trainParams, totalParams) = neuralnetwork.getParameters()
+        print('parameters: {}/{} are trainable'.format(trainParams, totalParams))
 
 def train(epoch):
     net.train()
@@ -153,9 +146,13 @@ print('parameters: {}/{} are trainable'.format(trainParams, totalParams))
 
 optimizer = optim.SGD(params=net.parameters(), lr=learning_rate, momentum=momentum)
 
-for epoch in range(n_epochs + 1):
-    train(epoch)
-    test()
+mynet  = NeuralWrapper()
+torchvision.datasets.MNIST('hello', train=3)??
+net(torch.randn((1, 1, 28, 28)))
+
+# for epoch in range(n_epochs + 1):
+#    train(epoch)
+#    test()
 
 # fig = plt.figure()
 # plt.plot(train_counter, train_losses, color='blue')

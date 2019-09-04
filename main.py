@@ -38,13 +38,14 @@ class Net(nn.Module):
         # convolutions:
         # 1 input image channel, 6 output channels, 3x3 square convolution
         # here using two distinct layers to test
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=6, kernel_size=3, stride=1, padding=1)
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=12, kernel_size=5, stride=1, padding=2)
         # 6 input image channel, 16 output channels, 3x3 square convolution
-        self.conv2 = nn.Conv2d(in_channels=6, out_channels=16, kernel_size=3, stride=1, padding=0)
+        self.conv2 = nn.Conv2d(in_channels=12, out_channels=24, kernel_size=3, stride=1, padding=0)
         # an affine operation: y = Wx + b
-        self.fc1 = nn.Linear(16 * 6 * 6, 120)  # 6*6 from image dimension
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10)
+        self.fc1 = nn.Linear(24 * 6 * 6, 500)  # 6*6 from image dimension
+        self.fc2 = nn.Linear(500, 120)
+        self.fc3 = nn.Linear(120, 84)
+        self.fc4 = nn.Linear(84, 10)
         # Pooling layers
         self.pool1 = nn.MaxPool2d(kernel_size=2)
         self.pool2 = nn.MaxPool2d(kernel_size=2)
@@ -52,11 +53,11 @@ class Net(nn.Module):
         self.flatten1 = nn.Flatten(start_dim=1, end_dim=-1)
 
     def forward(self, x):
-        # 1*28*28 -> 6*28*28
+        # 1*28*28 -> 12*28*28
         x = self.conv1(x)
         # activation
         x = F.relu(x)
-        # 6*28*28 -> 6*14*14
+        # 12*28*28 -> 12*14*14
         x = self.pool1(x)
         # 6*14*14 -> 16*12*12
         x = self.conv2(x)
@@ -76,6 +77,10 @@ class Net(nn.Module):
         x = F.relu(x)
         # 1*84 -> 10
         x = self.fc3(x)
+        # 1*84 -> 10
+        x = self.fc4(x)
+        # softmax
+        x = F.log_softmax(x, dim=1)
         return x
 
     def getParameters(self):
@@ -166,6 +171,7 @@ def main():
 
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 
+    test(args, model, device, test_loader)
     for epoch in range(1, args.epochs + 1):
         train(args, model, device, train_loader, optimizer, epoch)
         test(args, model, device, test_loader)
